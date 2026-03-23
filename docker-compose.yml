@@ -27,6 +27,13 @@ networks:
         - subnet: 172.1.1.0/24
 
 services:
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - kong-net
+
   kong-migrations:
     image: kong:3.7.1
     command: kong migrations bootstrap
@@ -82,6 +89,29 @@ services:
       - kong_tmp_vol:/tmp
     security_opt:
       - no-new-privileges
+    depends_on:
+      - kong-database
+      - app
+
+  kong-bootstrap:
+    image: curlimages/curl:8.7.1
+    restart: "no"
+    depends_on:
+      - kong
+      - app
+    networks:
+      - kong-net
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        until curl -fsS http://kong:8001/status >/dev/null; do sleep 2; done
+        curl -fsS -X POST http://kong:8001/services \
+          --data name=fastapi \
+          --data url=http://app:5000 || true
+        curl -fsS -X POST http://kong:8001/services/fastapi/routes \
+          --data name=fastapi-root \
+          --data 'paths[]=/' || true
 
   konga_web:
     image: pantsel/konga
@@ -187,4 +217,3 @@ services:
       - "3000:3000"
     networks:
       - kong-net
-
