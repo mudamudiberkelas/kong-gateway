@@ -68,9 +68,9 @@ services:
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8000:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8443:8443/tcp"
-      - "127.0.0.1:8001:8001/tcp"
-      - "127.0.0.1:8444:8444/tcp"
-      - "127.0.0.1:8002:8002/tcp"
+      - "${KONG_INBOUND_ADMIN_LISTEN:-0.0.0.0}:8001:8001/tcp"
+      - "${KONG_INBOUND_ADMIN_SSL_LISTEN:-0.0.0.0}:8444:8444/tcp"
+      - "${KONG_INBOUND_ADMIN_GUI_LISTEN:-0.0.0.0}:8002:8002/tcp"
     healthcheck:
       test: [ "CMD", "kong", "health" ]
       interval: 10s
@@ -187,5 +187,4 @@ services:
       - "3000:3000"
     networks:
       - kong-net
-
 
